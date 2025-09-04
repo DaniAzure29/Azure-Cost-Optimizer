@@ -75,3 +75,13 @@ Dependencies installed.
 Authentication working with dual flow: Default creds → Service Principal fallback.
 
 Next step: Query real cost data from Azure Cost Management API.
+
+Day 2: Querying Azure Cost Data
+
+Updated authentication helper to always return both cred and subscription_id, whether using az login or Service Principal.
+
+Implemented cost query function with CostManagementClient.
+
+Replaced deprecated datetime.utcnow() with modern datetime.now(timezone.utc) for timezone-aware timestamps.
+
+Verified query returns cost data (columns + rows) for the last 7 days.
