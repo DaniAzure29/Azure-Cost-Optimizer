@@ -1,87 +1,57 @@
-Azure Cost Optimizer
+Azure Cost Optimization Tool
 Overview
 
-A Python tool that queries Azure Cost Management APIs to track and report cloud spend.
-Authentication is handled via Default Azure Credentials (e.g. az login) with a Service Principal fallback for automation.
+A Python tool that queries the Azure Cost Management API to track and optimize cloud spend.
+It authenticates via either DefaultAzureCredential (az login) or a Service Principal fallback, retrieves recent cost data, transforms it into clean reports, and detects cost anomalies.
 
-Project Structure
+Features
+
+🔐 Flexible Authentication: Uses az login if available, otherwise falls back to Service Principal (azure_sp.json).
+
+💰 Cost Queries: Pulls subscription-level spend using the official CostManagementClient.
+
+📊 Data Transformation: Converts raw API results into Pandas DataFrame.
+
+💾 Export: Saves reports to CSV (and optionally Markdown).
+
+🚨 Spike Detection: Flags sudden cost increases (e.g., >30% compared to rolling average).
+
+File Structure
 
 azure-cost-optimizer/
 │── src/
-│ └── main.py # Python entry point
+│ └── main.py # Our Python entry point
 │── config/
-│ └── azure-credentials.json # Service Principal credentials (gitignored)
+│ └── azure-credentials.json # Service principal creds (gitignored)
 │── output/
 │ └── reports/ # Cost reports (CSV/Markdown)
 │── README.md
 │── .gitignore
 │── requirements.txt
-│── .vpython/ # Virtual environment (local only, not committed)
 
-Setup (Day 1)
+Usage
 
-1. Clone the repo & create virtual environment
+1. Install dependencies
+   pip install -r requirements.txt
 
-python -m venv .venv
-source .venv/bin/activate # Mac/Linux
-.venv\Scripts\Activate # Windows
+2. Authenticate
 
-2.  Install dependencies
-    pip install -r requirements.txt
+   Option A: Login interactively
 
-3.  Authentication setup
+   az login
 
-    - Tool first tries DefaultAzureCredential (works if you ran az login).
+Option B: Provide Service Principal JSON (azure_sp.json)
 
-    - If that fails, it falls back to a Service Principal JSON file.
+    {
+    "tenantId": "xxxx-xxxx-xxxx",
+    "clientId": "xxxx-xxxx-xxxx",
+    "clientSecret": "xxxx-xxxx-xxxx",
+    "subscriptionId": "xxxx-xxxx-xxxx"
+    }
 
-    Create Service Principal (replace <SUBSCRIPTION_ID>):
-    az ad sp create-for-rbac \
-     --name "CostOptimizerSP" \
-     --role "Cost Management Reader" \
-     --scopes /subscriptions/<SUBSCRIPTION_ID>\
-     --sdk-auth
+3. Run the script
+   python main.py
 
-    Save the JSON output to:
-    config/azure-credentials.json
+4. Output
 
-    Make sure .gitignore includes:
-    config/azure-credentials.json
-
-4.  Test authentication
-    Run:
-
-        python src/main.py
-
-If logged in with az login:
-
-    ✅ Using DefaultAzureCredential (az login / managed identity)
-    🎉 Authentication successful!
-
-If not logged in, falls back to Service Principal:
-
-    ⚠️ Default credentials not available, falling back to JSON file...
-    ✅ Using Service Principal credentials
-    🎉 Authentication successful!
-
-Current Status
-
-Project structure set up.
-
-Virtual environment configured.
-
-Dependencies installed.
-
-Authentication working with dual flow: Default creds → Service Principal fallback.
-
-Next step: Query real cost data from Azure Cost Management API.
-
-Day 2: Querying Azure Cost Data
-
-Updated authentication helper to always return both cred and subscription_id, whether using az login or Service Principal.
-
-Implemented cost query function with CostManagementClient.
-
-Replaced deprecated datetime.utcnow() with modern datetime.now(timezone.utc) for timezone-aware timestamps.
-
-Verified query returns cost data (columns + rows) for the last 7 days.
+azure_costs_YYYYMMDD.csv → cost breakdown for last 7 days

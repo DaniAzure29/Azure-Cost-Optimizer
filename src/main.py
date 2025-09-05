@@ -2,7 +2,7 @@ from azure.identity import DefaultAzureCredential, ClientSecretCredential
 from azure.mgmt.resource import SubscriptionClient
 from azure.mgmt.costmanagement import CostManagementClient
 from azure.mgmt.costmanagement.models import QueryDefinition, QueryDataset, QueryTimePeriod
-
+import pandas as pd
 from datetime import datetime, timedelta, timezone
 import json
 import os
@@ -83,13 +83,37 @@ def query_costs(cred, subscription_id):
     return result
 
 
+def costs_to_dataframe(result):
+    # Extract column names
+    columns = [col.name for col in result.columns]
 
-if __name__ == "__main__":
-    try:
-        result = get_credentials()
+    # Build DataFrame
+    df = pd.DataFrame(result.rows, columns=columns)
+
+    print("✅ Converted costs to DataFrame")
+    print(df.head())  # quick peek
+    return df
+
+def main():
+    # Step 1: Authenticate
+    try: 
+        cred, subscription_id = get_credentials()
         print("🎉 Authentication successful!")
-        query = query_costs()
-        print(query)
+        # Step 2: Query costs (last 7 days)
+        result = query_costs(cred, subscription_id)
+        # Step 3: Convert to DataFrame
+        df = costs_to_dataframe(result)
+        today = datetime.now().strftime("%Y%m%d")
+
+        # Step 4: Save to CSV (basic export for now)
+        filename = f"output/reports/azure_costs{today}.csv"
+        df.to_csv(filename, index=False)
+        print(f"💾 Saved costs to {filename}")
     except Exception as err:
         print("❌ Authentication failed:", err)
         sys.exit(1)
+
+
+
+if __name__ == "__main__":
+    main()

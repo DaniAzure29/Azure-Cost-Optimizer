@@ -1,3 +1,4 @@
 azure-identity
 azure-mgmt-costmanagement
 pandas
+azure-mgmt-resource
